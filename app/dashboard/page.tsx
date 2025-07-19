@@ -4,28 +4,30 @@ import { prisma } from "@/lib/prisma";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import Link from "next/link";
 
-async function fetchPosts( userId : string) {
-  const data = await prisma.blogPost.findMany({
-   where:{
-   authorId:userId,
-   },
-  orderBy:{
-    createdAt: "desc",
-  },
-  })
- return data;
+// Force dynamic rendering to avoid prerender build errors
+export const dynamic = "force-dynamic";
 
+async function fetchPosts(userId: string) {
+  const data = await prisma.blogPost.findMany({
+    where: {
+      authorId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  return data;
 }
 
-export  default async function Dashboard() {
+export default async function Dashboard() {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
 
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
- 
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-const data= await fetchPosts(user.id);
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const data = await fetchPosts(user.id);
 
   return (
     <div>
@@ -43,4 +45,3 @@ const data= await fetchPosts(user.id);
     </div>
   );
 }
-
